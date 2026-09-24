@@ -76,6 +76,14 @@ function resolveConfig(rootDir = path.join(__dirname, '..')) {
     adminPassword: process.env.PET_ADMIN_PASSWORD || '',
     authRateLimit: int(process.env.PET_AUTH_RATE_LIMIT, 30),
     trustProxy: bool(process.env.PET_TRUST_PROXY, false),
+    /** Compress responses ≥ this many bytes (0 disables compression). */
+    compressMinBytes: int(process.env.PET_COMPRESS_MIN_BYTES, 1024),
+    /** Brotli quality 0–11 (6 ≈ good ratio at ~fast encode for servers). */
+    brotliQuality: Math.min(Math.max(int(process.env.PET_BROTLI_QUALITY, 6), 0), 11),
+    /** Zstd level 0–22; NaN/empty ⇒ zlib's default (ZSTD_CLEVEL_DEFAULT). */
+    zstdLevel: process.env.PET_ZSTD_LEVEL
+      ? int(process.env.PET_ZSTD_LEVEL, NaN)
+      : NaN,
     /** Built SPA dropped here is served at `/` next to the API. */
     spaDir: path.resolve(rootDir, process.env.PET_SPA_DIR || './public/app'),
   };

@@ -32,6 +32,11 @@ function createApp({ config, db }) {
   // CORS covers /health too — the static (Vercel) build probes it cross-origin.
   app.use(cors(config.corsOrigins));
 
+  // Zstd/Brotli for everything that follows: API JSON, SPA assets, health.
+  if (config.compressMinBytes > 0) {
+    app.use(require('./middleware/compress').compress(config));
+  }
+
   app.get('/health', (req, res) => {
     res.json({
       status: 'ok',

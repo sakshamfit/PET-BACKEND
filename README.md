@@ -39,7 +39,7 @@ npm run seed-demo           # admin@pet.local / PetAdmin123!
 node scripts/build-frontend.js
 npm start                   # → http://localhost:8080  (SPA + API together)
 
-# tests (34 integration tests, ~3s)
+# tests (34 integration tests + 9 compression tests, ~4s)
 npm test
 ```
 
@@ -69,6 +69,7 @@ One adapter (`src/db.js`) normalizes all three. Runtime dependencies are **expre
 | Area | Endpoints |
 |---|---|
 | Health & build | `GET /health`, `GET /build-info.json` |
+| Compression | zstd (preferred) / brotli on all compressible responses ≥ 1 KB |
 | Auth | login · refresh (rotating, reuse-detecting) · logout · change-password |
 | Me | profile · employee dashboard · today's attendance · notifications · directory |
 | Team (admin) | list · create (one-time password) · update · enable/disable · reset-access |
@@ -96,6 +97,10 @@ See **[docs/API.md](docs/API.md)** for the complete route reference.
 * Files are served only through authenticated `/api/files/*` with path-traversal rejection.
 * Login attempts are rate-limited per IP; all mutations land in the `audit_log` (Admin → Recent activity).
 
+### Compression (Zstd + Brotli)
+
+Every response ≥ `PET_COMPRESS_MIN_BYTES` (default 1 KB) is compressed on the fly from `node:zlib` — **zstd** for clients that advertise it (RFC 8831), **brotli** otherwise, with q-value negotiation (`zstd;q=0, br` honoured). Images/video/PDF/fonts and anything already encoded are skipped, `Vary: Accept-Encoding` is set on compressed responses so the Cloudflare Tunnel cache stays correct, and payloads under the threshold stay identity. No `compression` package, no extra dependency — same install story as everything else here.
+
 ---
 
 ## Configuration
@@ -110,6 +115,9 @@ Copy `.env.example` → `.env`. Highlights:
 | `PET_DB_PATH` | `./data/pet.db` | SQLite file; back this up |
 | `PET_FILES_DIR` | `./data/files` | uploaded photos/documents |
 | `PET_ADMIN_EMAIL` / `PET_ADMIN_PASSWORD` | — | first-boot bootstrap when no admin exists |
+| `PET_COMPRESS_MIN_BYTES` | `1024` | responses at least this big go out `zstd` or `br` (0 disables) |
+| `PET_BROTLI_QUALITY` | `6` | brotli quality 0–11 |
+| `PET_ZSTD_LEVEL` | zlib default | zstd level 0–22 | |
 
 Full list in [`.env.example`](.env.example).
 
@@ -125,7 +133,7 @@ src/
 ├── db.js                # SQLite driver adapter (3 drivers) + transactions
 ├── schema.js            # baseline DDL (28 tables) + migration runner
 ├── lib/                 # errors, validation, jwt, passwords, ids, audit, notify
-├── middleware/          # auth, cors, rate limit, error handler
+├── middleware/          # auth, cors, zstd/brotli compression, rate limit, errors
 ├── services/            # domain logic (shared by routes + offline sync)
 └── routes/              # HTTP layer, one file per resource
 scripts/
@@ -174,7 +182,7 @@ It also applies two one-line fixes that currently exist in `sakshamfit/PET`'s `A
 
 ```bash
 npm run dev              # node --watch
-npm test                 # node --test (34 tests)
+npm test                 # node --test (43 tests)
 npm run bootstrap-admin  # manage the Main Admin
 npm run seed-demo        # reset-free demo data (refuses if data exists; --force to layer)
 ```
