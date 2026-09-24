@@ -1,0 +1,25 @@
+{
+  "name": "pet-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PET — Purvanchal Education Trust Field Operations backend (Express + SQLite)",
+  "main": "src/server.js",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test --test-concurrency=1 \"tests/**/*.test.js\"",
+    "bootstrap-admin": "node scripts/bootstrap-admin.js",
+    "seed-demo": "node scripts/seed-demo.js"
+  },
+  "dependencies": {
+    "express": "^4.22.3",
+    "node-sqlite3-wasm": "^0.8.60"
+  },
+  "optionalDependencies": {
+    "better-sqlite3": "^11.10.0"
+  }
+}
