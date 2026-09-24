@@ -33,6 +33,12 @@ curl http://localhost:8080/health
 # optional: walk every screen with realistic demo data
 npm run seed-demo           # admin@pet.local / PetAdmin123!
 
+# optional but recommended: serve the whole product from this server
+# (clones sakshamfit/PET, builds it into public/app — same-origin /api,
+#  no CORS, /health + /build-info.json wiring included)
+node scripts/build-frontend.js
+npm start                   # → http://localhost:8080  (SPA + API together)
+
 # tests (34 integration tests, ~3s)
 npm test
 ```
@@ -144,6 +150,25 @@ See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** for the full walkthrough:
 ```
 
 ---
+
+## Serving the SPA from this server (one origin, no CORS)
+
+```bash
+node scripts/build-frontend.js   # clone frontend → apply runtime fixes → vite build → public/app/
+npm start                        # serves UI + API from the same origin
+```
+
+The script pins down every integration point between the two repos:
+
+| Integration point | Who serves it | How the frontend finds it |
+|---|---|---|
+| API (`/api/**`) | this server | bundle falls back to **same-origin `/api`** when `PET_API_BASE` is empty (the build script passes it empty on purpose) |
+| Health probe (`GET /health`, origin root) | this server | `petApiBase.healthUrlFor()` derives it from the API base |
+| Build stamp (`GET /build-info.json`) | this server, from `public/app/` | frontend polls it for the update banner |
+| Auth session | shared contract | `access_token`/`refresh_token` shapes match `PetSessionPayload` exactly |
+| Cross-origin mode (Vercel UI) | this server | set `CORS_ORIGINS` to the frontend origin; the UI sets `PET_API_BASE=https://…` at build time or via the connect screen |
+
+It also applies two one-line fixes that currently exist in `sakshamfit/PET`'s `App.tsx` (`onLoggedIn` / `navigate` props — see `FIXES` in the script): without them the dashboard's navigation buttons throw at runtime. Each fix is idempotent — when the frontend repo is fixed upstream, the script simply reports "fix already present". Use `PET_FRONTEND_DIR=/path/to/PET` to build from a local checkout instead of cloning.
 
 ## Development
 
