@@ -365,7 +365,17 @@ test('student PATCH updates fields and refreshes the school name copy', async ()
   });
   assert.equal(patched.status, 200);
   assert.equal(patched.json.student.school_name, 'Saraswati Vidya Mandir');
+  assert.equal(patched.json.student.school_address, null);
   assert.equal(patched.json.student.notes, 'joined late');
+
+  const cleared = await api(ctx.base, 'PATCH', `/api/students/${id}`, {
+    token: admin.access_token,
+    body: { school_id: null },
+  });
+  assert.equal(cleared.status, 200);
+  assert.equal(cleared.json.student.school_id, null);
+  assert.equal(cleared.json.student.school_name, null);
+  assert.equal(cleared.json.student.school_address, null);
 });
 
 // ── Schools ──────────────────────────────────────────────────────────────────

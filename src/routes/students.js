@@ -162,10 +162,18 @@ function studentsRoutes(config) {
 
       const changed = Object.fromEntries(Object.entries(input).filter(([, v]) => v !== undefined));
       if (Object.keys(changed).length) {
-        if (changed.school_id) {
-          const school = db.prepare('SELECT * FROM schools WHERE id = ?').get(changed.school_id);
-          if (!school) throw badRequest('Linked school not found.');
-          changed.school_name = school.name;
+        if (Object.prototype.hasOwnProperty.call(changed, 'school_id')) {
+          if (changed.school_id) {
+            const school = db.prepare('SELECT * FROM schools WHERE id = ?').get(changed.school_id);
+            if (!school) throw badRequest('Linked school not found.');
+            changed.school_name = school.name;
+            changed.school_address = school.address ?? null;
+          } else {
+            // Clearing a school must also clear the denormalized display fields;
+            // otherwise the list/profile keeps showing the old school name.
+            changed.school_name = null;
+            changed.school_address = null;
+          }
         }
         const sets = Object.keys(changed).map(k => `${k} = ?`);
         const params = Object.values(changed);

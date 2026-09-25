@@ -9,13 +9,15 @@
  * What it does:
  *   1. clones sakshamfit/PET (or uses PET_FRONTEND_DIR when you already
  *      have a checkout — CI / air-gapped office PC);
- *   2. applies the small compatibility fixes that exist in the frontend repo
+ *   2. applies the checked-in PET polish overrides (responsive layout,
+ *      no mobile input zoom, and complete task/student screens);
+ *   3. applies the small compatibility fixes that exist in the frontend repo
  *      today and would otherwise hurt the hosted server build (see FIXES
  *      below) — each is idempotent, so an upstream fix silently no-ops;
- *   3. `npm ci` + `vite build` with an empty PET_API_BASE, which bakes
+ *   4. `npm ci` + `vite build` with an empty PET_API_BASE, which bakes
  *      same-origin `/api` into the bundle — exactly what this server
  *      exposes;
- *   4. copies dist/ → public/app/ (the small production bundle is tracked so
+ *   5. copies dist/ → public/app/ (the small production bundle is tracked so
  *      a fresh checkout is immediately deployable).
  *
  * The result: open http://<host>:<port>/ and the login screen talks to
@@ -104,6 +106,30 @@ function ensureFrontendSource() {
   return dir;
 }
 
+const POLISH_OVERRIDES = [
+  path.join('pet-web', 'src', 'index.css'),
+  path.join('pet-web', 'src', 'App.tsx'),
+  path.join('pet-web', 'src', 'pages', 'Tasks.tsx'),
+  path.join('pet-web', 'src', 'pages', 'Students.tsx'),
+];
+
+/**
+ * Keep the client-facing polish in this repository even though the upstream
+ * frontend is maintained separately. These files are copied before the small
+ * compatibility replacements below, so a fresh deployment gets the same UI
+ * as the checked-in production bundle.
+ */
+function applyPolishOverrides(sourceDir) {
+  for (const relative of POLISH_OVERRIDES) {
+    const override = path.join(ROOT, 'frontend-overrides', relative);
+    const target = path.join(sourceDir, relative);
+    if (!fs.existsSync(override)) throw new Error(`Missing frontend override: ${override}`);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.copyFileSync(override, target);
+    console.log(`applied PET polish: ${relative}`);
+  }
+}
+
 function applyFixes(sourceDir) {
   for (const fix of FIXES) {
     const file = path.join(sourceDir, fix.file);
@@ -147,6 +173,7 @@ function publish(sourceDir) {
 function main() {
   console.log('── PET frontend build ─────────────────────────────');
   const sourceDir = ensureFrontendSource();
+  applyPolishOverrides(sourceDir);
   applyFixes(sourceDir);
   build(sourceDir);
   publish(sourceDir);

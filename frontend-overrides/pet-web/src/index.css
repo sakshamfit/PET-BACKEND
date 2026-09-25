@@ -1,0 +1,61 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --color-pet-900: #0f3d2e;
+  --color-pet-800: #14503d;
+  --color-pet-700: #1a664d;
+  --color-pet-600: #21795d;
+  --color-pet-100: #dff2ea;
+  --color-pet-50: #f0f9f4;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-slate-100 text-slate-900 antialiased;
+  font-family: var(--font-sans);
+}
+
+.p-card {
+  @apply bg-white rounded-2xl border border-slate-200 shadow-sm;
+}
+
+.p-btn,
+.p-btn-primary,
+.p-btn-ghost {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl font-medium transition active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none min-h-11 px-4 text-sm;
+}
+
+.p-btn-primary {
+  @apply bg-pet-800 text-white hover:bg-pet-700;
+}
+
+.p-btn-ghost {
+  @apply bg-white text-slate-700 border border-slate-200 hover:border-slate-300;
+}
+
+.p-input {
+  /* 16px on phones prevents iOS Safari from zooming the whole page when a
+     field receives focus; desktop can stay compact. */
+  @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-base sm:text-sm outline-none focus:border-pet-700 focus:ring-2 focus:ring-pet-100 min-h-11;
+}
+
+html,
+body {
+  @apply overflow-x-hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.p-label {
+  @apply block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5;
+}
