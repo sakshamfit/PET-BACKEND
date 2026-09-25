@@ -1,0 +1,20 @@
+{
+  "id": "/app/",
+  "name": "Purvanchal Education Trust — Field Operations",
+  "short_name": "PET Ops",
+  "description": "Student registration, field visits, tasks, attendance and reports for Purvanchal Education Trust staff.",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f3d2e",
+  "theme_color": "#0f3d2e",
+  "icons": [
+    {
+      "src": "/app/pet-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -9,13 +9,14 @@
  * What it does:
  *   1. clones sakshamfit/PET (or uses PET_FRONTEND_DIR when you already
  *      have a checkout — CI / air-gapped office PC);
- *   2. applies two one-line fixes that exist in the frontend repo today
- *      and would break the dashboard at runtime (see FIXES below) — each
- *      is idempotent, so an upstream fix means it silently no-ops;
+ *   2. applies the small compatibility fixes that exist in the frontend repo
+ *      today and would otherwise hurt the hosted server build (see FIXES
+ *      below) — each is idempotent, so an upstream fix silently no-ops;
  *   3. `npm ci` + `vite build` with an empty PET_API_BASE, which bakes
  *      same-origin `/api` into the bundle — exactly what this server
  *      exposes;
- *   4. copies dist/ → public/app/ (gitignored; regenerated any time).
+ *   4. copies dist/ → public/app/ (the small production bundle is tracked so
+ *      a fresh checkout is immediately deployable).
  *
  * The result: open http://<host>:<port>/ and the login screen talks to
  * the API on the same origin. `/build-info.json` powers the frontend's
@@ -32,13 +33,16 @@ const OUT_DIR = path.join(ROOT, 'public', 'app');
 const FRONTEND_URL = process.env.PET_FRONTEND_URL || 'https://github.com/sakshamfit/PET.git';
 
 /**
- * Upstream frontend fixes (sakshamfit/PET, pet-web/src/App.tsx):
+ * Upstream frontend fixes (sakshamfit/PET):
  *   1. LoginPage declares `onLoggedIn` but App passes `onLogin` — after a
  *      successful sign-in the callback is undefined and throws (login still
  *      lands via auth listeners, but the error is surfaced to the user).
  *   2. Both dashboards declare a required `navigate` prop; App renders them
  *      without one, so every navigation button on the home screen dies with
  *      "navigate is not a function".
+ *   3. Vite marks every build as a static-host build, which displays a
+ *      misleading "Connect to your PET server" form even when this server is
+ *      serving the SPA and API from the same origin.
  * Remove a FIX line once the frontend repo carries the fix itself.
  */
 const FIXES = [
@@ -53,6 +57,30 @@ const FIXES = [
     why: 'dashboards require a navigate prop',
     from: '{route === \'dashboard\' && (isAdmin ? <AdminDashboardPage /> : <EmployeeDashboard />)}',
     to: '{route === \'dashboard\' && (isAdmin ? <AdminDashboardPage navigate={navigate} /> : <EmployeeDashboard navigate={navigate} />)}',
+  },
+  {
+    file: 'vite.config.ts',
+    why: 'same-origin server builds must not show the remote-server connect form',
+    from: '__PET_HOSTED_STATIC__: JSON.stringify(true),',
+    to: '__PET_HOSTED_STATIC__: JSON.stringify(false),',
+  },
+  {
+    file: path.join('pet-web', 'src', 'pages', 'Login.tsx'),
+    why: 'remove the server connection option from the hosted login screen',
+    from: "import { ServerConnection } from '../connect';\n",
+    to: '',
+  },
+  {
+    file: path.join('pet-web', 'src', 'pages', 'Login.tsx'),
+    why: 'remove the server connection option from the hosted login screen',
+    from: '        <ServerConnection />\n',
+    to: '',
+  },
+  {
+    file: path.join('pet-web', 'src', 'pages', 'Login.tsx'),
+    why: 'remove the hosted login connection status pill',
+    from: '          <ConnectionPill />\n',
+    to: '',
   },
 ];
 
@@ -80,7 +108,8 @@ function applyFixes(sourceDir) {
   for (const fix of FIXES) {
     const file = path.join(sourceDir, fix.file);
     const before = fs.readFileSync(file, 'utf8');
-    if (before.includes(fix.to)) {
+    const alreadyApplied = fix.to === '' ? !before.includes(fix.from) : before.includes(fix.to);
+    if (alreadyApplied) {
       console.log(`fix already present: ${fix.why}`);
       continue;
     }

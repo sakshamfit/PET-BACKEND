@@ -13,7 +13,8 @@
     "dev": "node --watch src/server.js",
     "test": "node --test --test-concurrency=1 \"tests/**/*.test.js\"",
     "bootstrap-admin": "node scripts/bootstrap-admin.js",
-    "seed-demo": "node scripts/seed-demo.js"
+    "seed-demo": "node scripts/seed-demo.js",
+    "showcase": "node scripts/showcase.js"
   },
   "dependencies": {
     "express": "^4.22.3",

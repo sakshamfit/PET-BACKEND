@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
   Start a Cloudflare Tunnel that exposes the local PET server at the
-  public URL (e.g. https://app.plusoneco.in).
+  public URL (e.g. https://software.plusoneco.in).
 
 .EXAMPLE
   .\cloudflare-tunnel.ps1 -Token "<CLOUDFLARE_TUNNEL_TOKEN>"

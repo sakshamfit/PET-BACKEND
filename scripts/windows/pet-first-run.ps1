@@ -11,7 +11,7 @@
 
 .EXAMPLE
   .\pet-first-run.ps1 -AdminEmail admin@plusoneco.in -BootstrapAdmin
-  .\pet-first-run.ps1 -AdminEmail admin@plusoneco.in -AdminPassword "Secret123" -PublicUrl https://app.plusoneco.in
+  .\pet-first-run.ps1 -AdminEmail admin@plusoneco.in -AdminPassword "Secret123" -PublicUrl https://software.plusoneco.in
 #>
 param(
   [string]$AdminEmail = "",

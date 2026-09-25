@@ -6,7 +6,7 @@ The intended production shape (from the frontend README):
 phones / Vercel static build
         │  HTTPS
         ▼
-app.plusoneco.in  ── Cloudflare Tunnel ──►  office PC :8080 (this server)
+software.plusoneco.in  ── Cloudflare Tunnel ──►  office PC :8080 (this server)
                                                 └── data/pet.db + data/files/
 ```
 
@@ -18,7 +18,7 @@ Everything lives in one folder (default `C:\PET\app`). No database server, no Re
 
 * Windows 10/11 on the office PC
 * **Node.js 20 LTS** (18+ works; 22+ is fine too) — https://nodejs.org
-* A Cloudflare Tunnel token for `app.plusoneco.in`
+* A Cloudflare Tunnel token for `software.plusoneco.in`
 * Git (optional — a zip download works too)
 
 > **No Visual C++ Build Tools required.** `npm install` treats `better-sqlite3` as optional and falls back to `node:sqlite` (Node ≥ 22) or the bundled WASM driver automatically.
@@ -32,7 +32,7 @@ git clone <repo-url> .        # or unzip here
 .\scripts\windows\pet-first-run.ps1 `
     -AdminEmail admin@plusoneco.in `
     -BootstrapAdmin `
-    -PublicUrl https://app.plusoneco.in
+    -PublicUrl https://software.plusoneco.in
 ```
 
 This installs dependencies, writes `.env` (with `CORS_ORIGINS` for the Vercel frontend + tunnel domain), and creates the Main Admin. The one-time password is printed **once** — record it and hand it over; the admin must change it at first sign-in.
@@ -67,16 +67,16 @@ Logs append to `data\server.log`.
 .\scripts\windows\cloudflare-tunnel.ps1 -Token "<CLOUDFLARE_TUNNEL_TOKEN>"
 ```
 
-The tunnel forwards `https://app.plusoneco.in` → `http://localhost:8080`. Confirm from any phone:
+The tunnel forwards `https://software.plusoneco.in` → `http://localhost:8080`. Confirm from any phone:
 
 ```
-https://app.plusoneco.in/health          → {"status":"ok",...}
+https://software.plusoneco.in/health     → {"status":"ok",...}
 ```
 
 ## 5. Point the frontend at it
 
-* **Vercel static build:** project env var `PET_API_BASE=https://app.plusoneco.in`, redeploy.
-* **Already-deployed build:** in-app *Connect to server* screen → type `app.plusoneco.in`.
+* **Vercel static build:** project env var `PET_API_BASE=https://software.plusoneco.in`, redeploy.
+* **Already-deployed build:** in-app *Connect to server* screen → type `software.plusoneco.in`.
 * The connect screen probes `/health` and checks CORS — if it reports a CORS error, the origin isn't in `CORS_ORIGINS` (step 2), so fix `.env` and restart the service.
 
 ## 6. Serving the SPA from this server (optional)
@@ -112,7 +112,7 @@ Copy `data\` to an external disk / NAS nightly. Restore = put the folder back. W
 PORT=8080
 HOST=0.0.0.0
 NODE_ENV=production
-CORS_ORIGINS=https://software.plusoneco.in,https://app.plusoneco.in
+CORS_ORIGINS=https://software.plusoneco.in
 PET_JWT_SECRET=<openssl rand -base64 48>     # keep stable across restarts
 PET_DB_PATH=./data/pet.db
 PET_FILES_DIR=./data/files

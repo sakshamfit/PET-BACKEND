@@ -10,7 +10,7 @@ Frontend (sakshamfit/PET)             This repo
   Vercel (static build)               Office PC + Cloudflare Tunnel
        │                                    │
        └────────── /api + /health ──────────┘
-            https://app.plusoneco.in
+            https://software.plusoneco.in
 ```
 
 ---
@@ -30,11 +30,14 @@ npm start                   # → http://localhost:8080
 curl http://localhost:8080/health
 # {"status":"ok","service":"pet-backend",...}
 
+# client showcase (safe on a fresh install: build UI + seed demo data)
+npm run showcase            # admin@pet.local / PetAdmin123!
+
 # optional: walk every screen with realistic demo data
-npm run seed-demo           # admin@pet.local / PetAdmin123!
+npm run seed-demo           # refuses to touch a non-empty student database
 
 # optional but recommended: serve the whole product from this server
-# (clones sakshamfit/PET, builds it into public/app — same-origin /api,
+# (builds the bundled React SPA into public/app — same-origin /api,
 #  no CORS, /health + /build-info.json wiring included)
 node scripts/build-frontend.js
 npm start                   # → http://localhost:8080  (SPA + API together)
@@ -139,6 +142,7 @@ src/
 scripts/
 ├── bootstrap-admin.js   # create/reset the Main Admin
 ├── seed-demo.js         # realistic walkthrough data
+├── showcase.js          # safe one-command client demo setup
 └── windows/             # first-run, scheduled-task service, cloudflare tunnel
 tests/                   # 34 integration tests (node:test, no extra deps)
 docs/                    # API reference + deployment guide
@@ -148,11 +152,13 @@ docs/                    # API reference + deployment guide
 
 ## Deployment (office PC + Cloudflare Tunnel)
 
-See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** for the full walkthrough:
+For the quickest client demo on `software.plusoneco.in`, see **[docs/SHOWCASE.md](docs/SHOWCASE.md)**. It explains the SQLite persistence requirement, safe demo setup, HTTPS proxy/tunnel, demo accounts, and backups.
+
+See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** for the full office-PC walkthrough:
 
 ```powershell
 .\scripts\windows\pet-first-run.ps1 -AdminEmail admin@plusoneco.in -BootstrapAdmin `
-    -PublicUrl https://app.plusoneco.in
+    -PublicUrl https://software.plusoneco.in
 .\scripts\windows\install-server-service.ps1        # run at boot
 .\scripts\windows\cloudflare-tunnel.ps1 -Token "<TOKEN>"
 ```
@@ -176,7 +182,7 @@ The script pins down every integration point between the two repos:
 | Auth session | shared contract | `access_token`/`refresh_token` shapes match `PetSessionPayload` exactly |
 | Cross-origin mode (Vercel UI) | this server | set `CORS_ORIGINS` to the frontend origin; the UI sets `PET_API_BASE=https://…` at build time or via the connect screen |
 
-It also applies two one-line fixes that currently exist in `sakshamfit/PET`'s `App.tsx` (`onLoggedIn` / `navigate` props — see `FIXES` in the script): without them the dashboard's navigation buttons throw at runtime. Each fix is idempotent — when the frontend repo is fixed upstream, the script simply reports "fix already present". Use `PET_FRONTEND_DIR=/path/to/PET` to build from a local checkout instead of cloning.
+It also applies a few idempotent compatibility fixes from `sakshamfit/PET` (the login callback, dashboard `navigate` props, and the same-origin server-build flag — see `FIXES` in the script). Without the first two, dashboard navigation can throw at runtime; without the last, the server-hosted build shows a misleading remote-server connect form. When the frontend repo is fixed upstream, the script simply reports "fix already present". Use `PET_FRONTEND_DIR=/path/to/PET` to build from a local checkout instead of cloning.
 
 ## Development
 

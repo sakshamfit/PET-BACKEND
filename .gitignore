@@ -1,6 +1,7 @@
 node_modules/
 data/
-public/app/
+# The production SPA is checked in so a fresh checkout is immediately deployable.
+# Rebuild it with `node scripts/build-frontend.js` when the frontend changes.
 *.db
 *.db-journal
 *.db-wal
